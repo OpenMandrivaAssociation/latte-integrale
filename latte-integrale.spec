@@ -23,6 +23,7 @@ Patch2:         4ti2-gaussian.patch
 BuildRequires:  cdd
 BuildRequires:  cddlib-devel
 BuildRequires:  glpk-devel
+BuildRequires:  gmpxx-devel
 BuildRequires:  lrslib
 BuildRequires:  ntl-devel
 BuildRequires:  sqlite-devel
