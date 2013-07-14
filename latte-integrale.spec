@@ -45,7 +45,7 @@ functions over polytopes and in particular to do volume computations.
 Version:        %{ver4ti2}
 Summary:        A software package for problems on linear spaces
 Requires:       4ti2-libs%{?_isa} = %{ver4ti2}-%{release}
-Requires:       latte-integrale = %{EVRD}
+Requires:       latte-integrale
 
 # This can be removed once Fedora 18 reaches EOL.
 Provides:       4ti2 = %{version}-%{release}
