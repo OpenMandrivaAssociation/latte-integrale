@@ -1,24 +1,16 @@
-# The LattE Integrale distribution is now the upstream for 4ti2 as well.
-# We record here the version of the bundled, yet upstream 4ti2 package.
-%global ver4ti2 1.5
-
 Name:           latte-integrale
-Version:        1.5.3
+Version:        1.6
 Release:        1%{?dist}
 Summary:        Lattice point enumeration
 
 License:        GPLv2+
 URL:            http://www.math.ucdavis.edu/~latte/software.php
 Source0:        http://www.math.ucdavis.edu/~latte/software/%{name}-%{version}.tar.gz
-Source1:        http://www.4ti2.de/4ti2_manual.pdf
-# Adapt to changes in C++ lookup scope in GCC 4.7.  Sent upstream 8 Oct 2012.
-Patch0:         4ti2-gcc47.patch
+Source1:	%{name}.rpmlintrc
+# Adapt to new glpk API.  Sent upstream 31 Jul 2013.
+Patch0:         4ti2-glpk.patch
 # Fix warnings that indicate possible runtime problems.
-# Sent upstream 8 Oct 2012.
 Patch1:         %{name}-warning.patch
-# Upstream patch to fix an out-of-bounds array access in the Gaussian
-# reduction code.
-Patch2:         4ti2-gaussian.patch
 
 BuildRequires:  cdd
 BuildRequires:  cddlib-devel
@@ -42,30 +34,23 @@ integrale, has the ability to directly compute integrals of polynomial
 functions over polytopes and in particular to do volume computations.
 
 %package -n 4ti2
-Version:        %{ver4ti2}
 Summary:        A software package for problems on linear spaces
-Requires:       4ti2-libs%{?_isa} = %{ver4ti2}-%{release}
+Requires:       4ti2-libs%{?_isa} = %{version}-%{release}
 Requires:       latte-integrale
-
-# This can be removed once Fedora 18 reaches EOL.
-Provides:       4ti2 = %{version}-%{release}
-Obsoletes:      4ti2 < 1.5-1
 
 %description -n 4ti2
 A software package for algebraic, geometric and combinatorial problems
 on linear spaces.
 
 %package -n 4ti2-devel
-Version:        %{ver4ti2}
 Summary:        Headers needed to develop software that uses 4ti2
-Requires:       4ti2-libs%{?_isa} = %{ver4ti2}-%{release}
+Requires:       4ti2-libs%{?_isa} = %{version}-%{release}
 Requires:       gmp-devel%{?_isa}
 
 %description -n 4ti2-devel
 Headers and library files needed to develop software that uses 4ti2.
 
 %package -n 4ti2-libs
-Version:        %{ver4ti2}
 Summary:        Library files for programs that use 4ti2
 
 %description -n 4ti2-libs
@@ -73,22 +58,17 @@ Library files for programs that use 4ti2.
 
 %prep
 %setup -q
-cp -p %{SOURCE1} .
 
 # Don't use bundled software; also delete the unused LiDIA files
 rm -f cddlib* glpk* gmp* lidia* ntl*
 
 # Unpack 4ti2 and latte-integrale
-tar xzf 4ti2-%{ver4ti2}.tar.gz
+tar xzf 4ti2-%{version}.tar.gz
 tar xzf latte-int-%{version}.tar.gz
 
 # Patch 4ti2
-cd 4ti2-%{ver4ti2}
+cd 4ti2-%{version}
 %patch0
-%patch2
-
-# Fix an underlinked test
-sed -i "s/^LIBS =.*/& -l4ti2common/" test/zsolve/api/Makefile.in
 
 # Fix encodings
 iconv -f ISO8859-1 -t UTF-8 NEWS > NEWS.utf8
@@ -113,14 +93,13 @@ sed -i 's/ulimit -t $MAXRUNTIME; //' code/test-suite/test.pl.in
 
 %build
 # Build 4ti2 first
-cd 4ti2-%{ver4ti2}
+cd 4ti2-%{version}
 %configure2_5x --enable-shared --disable-static LIBS="-lgmpxx -lgmp" \
   CPPFLAGS="-D_GNU_SOURCE=1"
 
 # Get rid of undesirable hardcoded rpaths; workaround libtool reordering
 # -Wl,--as-needed after all the libraries; also fix a typo.
-sed -e 's/func_apped/func_append/' \
-    -e 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' \
+sed -e 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' \
     -e 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' \
     -e 's|^LTCC="gcc"|LTCC="gcc -Wl,--as-needed"|' \
     -e 's|^CC="g++"|CC="g++ -Wl,--as-needed"|' \
@@ -131,16 +110,30 @@ make %{?_smp_mflags}
 # Do a fake install of 4ti2 for building latte-integrale
 mkdir ../local
 make install DESTDIR=$PWD/../local
+sed -i "s,%{_libdir}/lib4ti2,$PWD/../local&," ../local%{_libdir}/*.la
 
 # Now build latte-integrale itself
 cd ../latte-int-%{version}
-%configure2_5x --enable-DATABASE --with-4ti2=$PWD/../local/%{_prefix} \
+sed -i 's|\(^LIBS = .*\)|\1 ../../latte/liblatte.la|' \
+    code/latte/normalize/Makefile.in
+%configure2_5x --enable-shared --disable-static \
+  --enable-DATABASE --with-4ti2=$PWD/../local/%{_prefix} \
+  --with-4ti2=$PWD/../local/%{_prefix} \
   CPPFLAGS="-I%{_includedir}/cddlib -D_GNU_SOURCE=1"
+
+# Get rid of undesirable hardcoded rpaths; workaround libtool reordering
+# -Wl,--as-needed after all the libraries.
+sed -e 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' \
+    -e 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' \
+    -e 's|^LTCC="gcc"|LTCC="gcc -Wl,--as-needed"|' \
+    -e 's|^CC="g++"|CC="g++ -Wl,--as-needed"|' \
+    -i libtool
+
 make %{?_smp_mflags}
 
 %install
 # Install 4ti2
-cd 4ti2-%{ver4ti2}
+cd 4ti2-%{version}
 %make_install
 mkdir -p %{buildroot}%{_includedir}/tmp
 mv %{buildroot}%{_includedir}/{4ti2,groebner,util,zsolve} \
@@ -154,18 +147,22 @@ cd ../latte-int-%{version}
 # We don't need or want libtool files
 rm -f %{buildroot}%{_libdir}/*.la
 
+# Internal libraries only; don't install the .so since there are no headers
+rm -f %{buildroot}%{_libdir}/lib{latte,normalize}.so
+
 # We don't want documentation and examples in _datadir
 mkdir -p %{buildroot}%{_docdir}
-mv %{buildroot}%{_datadir}/latte-int %{buildroot}%{_docdir}/%{name}-%{version}
+mv %{buildroot}%{_datadir}/4ti2 %{buildroot}%{_docdir}
+mv %{buildroot}%{_datadir}/latte-int _docs_staging
 
 # Install missing documentation files
-cp -p AUTHORS COPYING TODO %{buildroot}%{_docdir}/%{name}-%{version}
+cp -p AUTHORS COPYING TODO _docs_staging
 
 %check
-export LD_LIBRARY_PATH=$PWD/local/%{_libdir}
+export LD_LIBRARY_PATH=$PWD/local/%{_libdir}:$PWD/latte-int-%{version}/code/latte/.libs
 
 # Check 4ti2
-cd 4ti2-%{ver4ti2}
+cd 4ti2-%{version}
 make check
 
 # Check LattE
@@ -173,11 +170,13 @@ cd ../latte-int-%{version}
 make check
 
 %files
-%{_docdir}/%{name}-%{version}/
+%doc latte-int-%{version}/_docs_staging/*
 %{_bindir}/*
+%{_libdir}/liblatte.so.*
+%{_libdir}/libnormalize.so.*
 
 %files -n 4ti2
-%doc 4ti2_manual.pdf
+%doc %{_docdir}/4ti2/
 
 %files -n 4ti2-devel
 %{_includedir}/4ti2/
@@ -185,7 +184,7 @@ make check
 %{_libdir}/libzsolve*.so
 
 %files -n 4ti2-libs
-%doc 4ti2-%{ver4ti2}/COPYING 4ti2-%{ver4ti2}/NEWS
-%doc 4ti2-%{ver4ti2}/README 4ti2-%{ver4ti2}/TODO
+%doc 4ti2-%{version}/COPYING 4ti2-%{version}/NEWS
+%doc 4ti2-%{version}/README 4ti2-%{version}/TODO
 %{_libdir}/lib4ti2*.so.*
 %{_libdir}/libzsolve*.so.*
