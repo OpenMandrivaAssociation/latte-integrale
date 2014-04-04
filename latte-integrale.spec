@@ -1,16 +1,17 @@
+%global fortiver 1.6.2
+%global lattever 1.7.1
+
 Name:           latte-integrale
-Version:        1.6
+Version:        %{lattever}
 Release:        1%{?dist}
 Summary:        Lattice point enumeration
 
 License:        GPLv2+
-URL:            http://www.math.ucdavis.edu/~latte/software.php
-Source0:        http://www.math.ucdavis.edu/~latte/software/%{name}-%{version}.tar.gz
+URL:            https://www.math.ucdavis.edu/~latte/software.php
+Source0:        https://www.math.ucdavis.edu/~latte/software/%{name}-%{version}.tar.gz
 Source1:	%{name}.rpmlintrc
-# Adapt to new glpk API.  Sent upstream 31 Jul 2013.
-Patch0:         4ti2-glpk.patch
 # Fix warnings that indicate possible runtime problems.
-Patch1:         %{name}-warning.patch
+Patch0:         %{name}-warning.patch
 
 BuildRequires:  cdd
 BuildRequires:  cddlib-devel
@@ -34,6 +35,7 @@ integrale, has the ability to directly compute integrals of polynomial
 functions over polytopes and in particular to do volume computations.
 
 %package -n 4ti2
+Version:        %{fortiver}
 Summary:        A software package for problems on linear spaces
 Requires:       4ti2-libs%{?_isa} = %{version}-%{release}
 Requires:       latte-integrale
@@ -43,6 +45,7 @@ A software package for algebraic, geometric and combinatorial problems
 on linear spaces.
 
 %package -n 4ti2-devel
+Version:        %{fortiver}
 Summary:        Headers needed to develop software that uses 4ti2
 Requires:       4ti2-libs%{?_isa} = %{version}-%{release}
 Requires:       gmp-devel%{?_isa}
@@ -51,6 +54,7 @@ Requires:       gmp-devel%{?_isa}
 Headers and library files needed to develop software that uses 4ti2.
 
 %package -n 4ti2-libs
+Version:        %{fortiver}
 Summary:        Library files for programs that use 4ti2
 
 %description -n 4ti2-libs
@@ -63,21 +67,18 @@ Library files for programs that use 4ti2.
 rm -f cddlib* glpk* gmp* lidia* ntl*
 
 # Unpack 4ti2 and latte-integrale
-tar xzf 4ti2-%{version}.tar.gz
-tar xzf latte-int-%{version}.tar.gz
-
-# Patch 4ti2
-cd 4ti2-%{version}
-%patch0
+tar xzf 4ti2-%{fortiver}.tar.gz
+tar xzf latte-int-%{lattever}.tar.gz
 
 # Fix encodings
+cd 4ti2-%{fortiver}
 iconv -f ISO8859-1 -t UTF-8 NEWS > NEWS.utf8
 touch -r NEWS NEWS.utf8
 mv -f NEWS.utf8 NEWS
 
 # Patch latte-integrale
-cd ../latte-int-%{version}
-%patch1
+cd ../latte-int-%{lattever}
+%patch0
 
 # Fix the cddlib search path, lrslib binary name
 sed -e "s|cdd\.h|cddlib/cdd.h|" -e "s/lrs1/lrs/" -i configure
@@ -93,7 +94,7 @@ sed -i 's/ulimit -t $MAXRUNTIME; //' code/test-suite/test.pl.in
 
 %build
 # Build 4ti2 first
-cd 4ti2-%{version}
+cd 4ti2-%{fortiver}
 %configure2_5x --enable-shared --disable-static LIBS="-lgmpxx -lgmp" \
   CPPFLAGS="-D_GNU_SOURCE=1"
 
@@ -113,7 +114,7 @@ make install DESTDIR=$PWD/../local
 sed -i "s,%{_libdir}/lib4ti2,$PWD/../local&," ../local%{_libdir}/*.la
 
 # Now build latte-integrale itself
-cd ../latte-int-%{version}
+cd ../latte-int-%{lattever}
 sed -i 's|\(^LIBS = .*\)|\1 ../../latte/liblatte.la|' \
     code/latte/normalize/Makefile.in
 %configure2_5x --enable-shared --disable-static \
@@ -133,7 +134,7 @@ make %{?_smp_mflags}
 
 %install
 # Install 4ti2
-cd 4ti2-%{version}
+cd 4ti2-%{fortiver}
 %make_install
 mkdir -p %{buildroot}%{_includedir}/tmp
 mv %{buildroot}%{_includedir}/{4ti2,groebner,util,zsolve} \
@@ -141,7 +142,7 @@ mv %{buildroot}%{_includedir}/{4ti2,groebner,util,zsolve} \
 mv %{buildroot}%{_includedir}/tmp %{buildroot}%{_includedir}/4ti2
 
 # Install latte-integrale
-cd ../latte-int-%{version}
+cd ../latte-int-%{lattever}
 %make_install
 
 # We don't need or want libtool files
@@ -159,18 +160,18 @@ mv %{buildroot}%{_datadir}/latte-int _docs_staging
 cp -p AUTHORS COPYING TODO _docs_staging
 
 %check
-export LD_LIBRARY_PATH=$PWD/local/%{_libdir}:$PWD/latte-int-%{version}/code/latte/.libs
+export LD_LIBRARY_PATH=$PWD/local/%{_libdir}:$PWD/latte-int-%{lattever}/code/latte/.libs
 
 # Check 4ti2
-cd 4ti2-%{version}
+cd 4ti2-%{fortiver}
 make check
 
 # Check LattE
-cd ../latte-int-%{version}
+cd ../latte-int-%{lattever}
 make check
 
 %files
-%doc latte-int-%{version}/_docs_staging/*
+%doc latte-int-%{lattever}/_docs_staging/*
 %{_bindir}/*
 %{_libdir}/liblatte.so.*
 %{_libdir}/libnormalize.so.*
@@ -184,7 +185,7 @@ make check
 %{_libdir}/libzsolve*.so
 
 %files -n 4ti2-libs
-%doc 4ti2-%{version}/COPYING 4ti2-%{version}/NEWS
-%doc 4ti2-%{version}/README 4ti2-%{version}/TODO
+%doc 4ti2-%{fortiver}/COPYING 4ti2-%{fortiver}/NEWS
+%doc 4ti2-%{fortiver}/README 4ti2-%{fortiver}/TODO
 %{_libdir}/lib4ti2*.so.*
 %{_libdir}/libzsolve*.so.*

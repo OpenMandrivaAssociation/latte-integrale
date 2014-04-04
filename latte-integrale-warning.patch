@@ -1,24 +1,37 @@
---- ./code/latte/ehrhart.cpp.orig	2013-08-19 15:48:29.000000000 -0600
-+++ ./code/latte/ehrhart.cpp	2013-09-10 12:00:00.000000000 -0600
-@@ -73,13 +73,13 @@ int main(int argc, char *argv[]) {
-     assumeUnimodularCones[127], dualApproach[127], taylor[127], printfile[127],
-     rationalCone[127], nonneg[127], Memory_Save[127], Save_Tri[127],
-     Load_Tri[127], Print[127], inthull[127], cddstyle[127], grobner[127],
--    removeFiles[127], command[10000], maximum[127],  Singlecone[127], LRS[127],
-+    removeFiles[127], maximum[127],  Singlecone[127], LRS[127],
-     Vrepresentation[127], dilation[127], minimize[127], binary[127], 
-     interior[127];
-   listVector *matrix, *equations, *inequalities, *rays, *endRays, *tmpRays, *matrixTmp;
-   vec_ZZ cost;
--  listVector *templistVec;
--  listCone *cones, *tmp, *tmpcones;
-+  listVector *templistVec = NULL;
-+  listCone *cones = NULL, *tmp, *tmpcones;
+--- ./code/latte/buildPolytopes/BuildRandomPolynomials.cpp.orig	2013-09-29 13:02:47.000000000 -0600
++++ ./code/latte/buildPolytopes/BuildRandomPolynomials.cpp	2014-01-06 12:30:00.000000000 -0700
+@@ -20,7 +20,7 @@ string makeRandomMonomial(const int dim,
+ 	//We treat totalDegree as the amount left over...how much powers we still have to add.
+ 	const int stepSize = 2; //add no more than 1 powers to a term at a time.
+ 	vector<int> powers;
+-	int i; //i = the x_i who will be getting more powers.
++	int i = 0; //i = the x_i who will be getting more powers.
+ 	int newPower;
+ 	stringstream poly;
  
-   latte_banner(cerr);
+--- ./code/latte/dual.cpp.orig	2013-09-29 13:02:51.000000000 -0600
++++ ./code/latte/dual.cpp	2014-02-10 07:00:00.000000000 -0700
+@@ -71,16 +71,14 @@ static void dualizeCone_with_cdd(listCon
+ {
+   char cddInFileName[PATH_MAX];
+   string tmpString;
+-  int i,j,tmpInt,len,numOfVertices;
++  int i,j,tmpInt,numOfVertices;
+   ZZ x,y;
+   rationalVector *w;
+-  listVector *rays, *rays2, *facets, *endFacets;
++  listVector *rays, *facets, *endFacets;
  
---- ./code/latte/ehrhart3.cpp.orig	2011-12-18 13:33:46.000000000 -0700
-+++ ./code/latte/ehrhart3.cpp	2013-09-10 12:00:00.000000000 -0600
+   assert(tmp->subspace_generators == NULL);
+   
+   rays=tmp->rays;
+-  rays2=rays;
+-  len=lengthListVector(rays);
+ 
+   strcpy(cddInFileName,"latte_cdd.ine");
+ 
+--- ./code/latte/ehrhart3.cpp.orig	2010-08-24 15:11:26.000000000 -0600
++++ ./code/latte/ehrhart3.cpp	2014-01-06 12:30:00.000000000 -0700
 @@ -33,7 +33,7 @@ void EhrhartPolyRootFinder::saveMatlab()
  	file.open(matlabCommands.c_str());
  	
@@ -37,9 +50,309 @@
  		file << " + " << poly[i] << "* t^" << i << " ";
  	file << ":\n";
  	file << "theRoots := fsolve(p = 0, t, complex):\n";
---- code/latte/maximize.cpp.orig	2013-08-19 15:48:29.000000000 -0600
-+++ code/latte/maximize.cpp	2013-09-10 12:00:00.000000000 -0600
-@@ -73,12 +73,12 @@
+--- ./code/latte/ehrhart.cpp.orig	2013-09-29 13:02:50.000000000 -0600
++++ ./code/latte/ehrhart.cpp	2014-02-10 07:00:00.000000000 -0700
+@@ -63,8 +63,7 @@ int main(int argc, char *argv[]) {
+ #ifdef SUN
+   struct tms tms_buf;
+ #endif
+-  float z;
+-  int i,numOfVars,numOfAllVars, degree = 1;
++  int i,numOfVars, degree = 1;
+   unsigned int flags = 0, print_flag = 0, output_cone = 0;
+   vec_ZZ dim, v, w;
+   int oldnumofvars;
+@@ -73,17 +72,16 @@ int main(int argc, char *argv[]) {
+     assumeUnimodularCones[127], dualApproach[127], taylor[127], printfile[127],
+     rationalCone[127], nonneg[127], Memory_Save[127], Save_Tri[127],
+     Load_Tri[127], Print[127], inthull[127], cddstyle[127], grobner[127],
+-    removeFiles[127], command[10000], maximum[127],  Singlecone[127], LRS[127],
++    removeFiles[127], maximum[127],  Singlecone[127], LRS[127],
+     Vrepresentation[127], dilation[127], minimize[127], binary[127], 
+     interior[127];
+   listVector *matrix, *equations, *inequalities, *rays, *endRays, *tmpRays, *matrixTmp;
+   vec_ZZ cost;
+-  listVector *templistVec;
+-  listCone *cones, *tmp, *tmpcones;
++  listVector *templistVec = NULL;
++  listCone *cones = NULL, *tmp, *tmpcones;
+ 
+   latte_banner(cerr);
+ 
+-  z=0;
+   //setbuf(stdout,0);
+ 
+   strcpy(invocation,"Invocation: ");
+@@ -359,7 +357,6 @@ int main(int argc, char *argv[]) {
+     exit(0);
+   }
+ 
+-  numOfAllVars=numOfVars;
+   mat_ZZ ProjU;
+   ProjU.SetDims(numOfVars, numOfVars);
+   oldnumofvars = numOfVars;
+--- ./code/latte/Grobner.cpp.orig	2013-09-29 13:02:50.000000000 -0600
++++ ./code/latte/Grobner.cpp	2014-02-10 07:00:00.000000000 -0700
+@@ -162,7 +162,7 @@ void readLatteGrobProblem(const char *fi
+ 		      char* grobner, ZZ bignum) {
+   int i,j,eq,ind,numOfVectors,numOfEquations;
+   vec_ZZ indexEquations, tmpVector;
+-  listVector *basis, *endBasis, *tmp, *endEquations, *endInequalities;
++  listVector *basis = NULL, *endBasis, *tmp, *endEquations, *endInequalities;
+   vec_ZZ b;
+ 
+   /* Reads numOfVars, matrix A, and rhs b. */
+--- ./code/latte/IntegralHull.cpp.orig	2014-01-10 15:12:33.000000000 -0700
++++ ./code/latte/IntegralHull.cpp	2014-02-10 07:00:00.000000000 -0700
+@@ -855,7 +855,7 @@ listVector* IntegralHull(listCone* cones
+ 	{
+ 		cerr << "Computing Integer Hull: " ;
+ 		Calculate_Polytope_Width (cones, matrix, numOfVars);	
+-		int counter = 1, len = 0;
++		int counter = 1;
+ 	
+ 		vertices = GetVertices(cones, matrix, 0, numOfVars, 0);
+ 	
+@@ -865,8 +865,6 @@ listVector* IntegralHull(listCone* cones
+     			vertices = Push_Vector(vertices,GetVertices(cones, matrix, 0, numOfVars, 0), numOfVars);
+     		}
+ 
+-  		len = lengthListVector(vertices);
+-  
+ 		int  Hull_Counter = 0;
+    		while(counter != 0)
+ 		{
+--- ./code/latte/integration/burstTrie.hpp.orig	2011-05-16 16:47:55.000000000 -0600
++++ ./code/latte/integration/burstTrie.hpp	2014-01-06 12:30:00.000000000 -0700
+@@ -151,7 +151,7 @@ public:
+ 		}
+ 
+ 		BurstTerm<T, S> *curTerm = firstTerm;
+-		BurstTerm<T, S> *oldTerm;
++		BurstTerm<T, S> *oldTerm = NULL;
+ 
+ 		while (curTerm && curTerm->lessThan(newTerm, equal))
+ 		{
+--- ./code/latte/integration/consumers.h.orig	2011-08-27 21:09:29.000000000 -0600
++++ ./code/latte/integration/consumers.h	2014-01-06 12:30:00.000000000 -0700
+@@ -41,6 +41,7 @@ public:
+ template <class T> class MonomialLoadConsumer : public MonomialConsumer<T> {
+ public:
+   MonomialLoadConsumer() {}
++  virtual ~MonomialLoadConsumer() {}
+   // Take monomial and consume it.
+   void ConsumeMonomial(const T& coef, int* exps) { insertMonomial(coef, exps, *monomials); }
+   void setMonomialSum(monomialSum& mySum) { monomials = &mySum; }
+@@ -58,7 +59,7 @@ public:
+   void setFormSum(linFormSum& myForms) { formSum = &myForms; }
+   void setDimension(int dimension) { if (formSum) { formSum->varCount = dimension; } }
+   int getDimension() { if (formSum) { return formSum->varCount; } else { return 0; } }
+-  ~FormLoadConsumer() {}
++  virtual ~FormLoadConsumer() {}
+ private:
+   linFormSum* formSum;
+ };
+@@ -90,7 +91,7 @@ public:
+   void setDimension(int dimension) {if ( formProductSum) formProductSum->varCount = dimension;}
+   int getDimension() {if ( formProductSum) return formProductSum->varCount; else return 0;}
+   int size() {if ( formProductSum) return formProductSum->myFormProducts.size(); else return 0;}
+-  ~FormProductLoadConsumer() {}
++  virtual ~FormProductLoadConsumer() {}
+ private:
+   linFormProductSum* formProductSum;
+ };
+--- ./code/latte/integration/iterators.hpp.orig	2011-07-11 18:26:36.000000000 -0600
++++ ./code/latte/integration/iterators.hpp	2014-01-06 12:30:00.000000000 -0700
+@@ -134,7 +134,7 @@ public:
+ 		return &curTerm;
+ 	}
+ 
+-	~BTrieIterator()
++	virtual ~BTrieIterator()
+ 	{
+ 		if (triePath)
+ 			delete[] triePath;
+--- ./code/latte/integration/newIntegration.cpp.orig	2014-01-10 15:12:24.000000000 -0700
++++ ./code/latte/integration/newIntegration.cpp	2014-02-10 07:00:00.000000000 -0700
+@@ -35,10 +35,10 @@ void convertToSimplex(simplexZZ &mySimpl
+ 	t = line.find("[", t) + 1;
+ 	t = line.find("[", t) + 1;
+ 	temp = line.substr(t, line.find("]", t) - t);
+-	for (i = 0; i < temp.length(); i++)
++	for (i = 0; (size_t) i < temp.length(); i++)
+ 		mySimplex.d += (temp.at(i) == ',');
+ 	c = 0;
+-	for (i = 0; i < line.length(); i++)
++	for (i = 0; (size_t) i < line.length(); i++)
+ 		c += (line.at(i) == ']');
+ 	if (c - 2 != mySimplex.d)
+ 	{
+@@ -51,7 +51,7 @@ void convertToSimplex(simplexZZ &mySimpl
+ 	{
+ 		temp = line.substr(index, line.find("]", index) - index + 1);
+ 		c = 0;
+-		for (j = 0; j < temp.length(); j++)
++		for (j = 0; (size_t) j < temp.length(); j++)
+ 			c += (temp.at(j) == ',');
+ 		if (c != mySimplex.d - 1)
+ 		{
+@@ -244,7 +244,7 @@ void integrateLinFormSum(ZZ& numerator,
+ {
+ 	ZZ v, de, counter, tem; //, coe;
+ 	RationalNTL coe;
+-	int i, j, index, k, m;
++	int i, j, m;
+ 	vec_ZZ l;
+ 	//if (forms.varCount!=mySimplex.d) {cout<<"The dimensions of the polynomial and simplex don't match. Please check!"<<forms.varCount<<"<>"<<mySimplex.d<<endl;exit(1);};
+ 	l.SetLength(mySimplex.d);
+--- ./code/latte/integration/PolyRep.cpp.orig	2013-09-29 13:01:45.000000000 -0600
++++ ./code/latte/integration/PolyRep.cpp	2014-02-10 07:00:00.000000000 -0700
+@@ -30,8 +30,8 @@ void _parseMonomials(_MonomialConsumer<R
+ 	}
+ 	consumer->setDimension(varCount);
+ 
+-	int termIndex, lastPos, expIndex, flag;
+-	termIndex = lastPos = flag = 0; //0 means we expect coefficient, 1 means we expect exponent vector
++	int lastPos, expIndex, flag;
++	lastPos = flag = 0; //0 means we expect coefficient, 1 means we expect exponent vector
+ 
+ 	int *exponents = new int[varCount];
+ 	RationalNTL coefficient;
+@@ -146,7 +146,6 @@ void _loadLinForms(_linFormSum &forms, c
+ //nested list: [[c_{1}, [d_{1}, [p_{1}, p_{2}, ..., p_{varCount}]], .. ]
+ void _parseLinForms(_FormSumConsumer<RationalNTL>* consumer, const string& line)
+ {
+-	int termIndex = 0;
+ 	int lastPos = 0;
+ 	int varCount = 0;
+ 	int k;
+@@ -167,7 +166,7 @@ void _parseLinForms(_FormSumConsumer<Rat
+ 
+ 	vec_ZZ coefs;
+ 	coefs.SetLength(varCount);
+-	int degree;
++	int degree = 0;
+ 	RationalNTL coefficient;
+ 
+ 	for (size_t i = 1; i < line.length() - 1; i++) //ignore outermost square brackets
+@@ -266,7 +265,6 @@ void _destroyLinForms(_linFormSum &myPol
+ 	cBlock<RationalNTL>* coeffTmp = myPoly.cHead;
+ 	lBlock* oldExp = NULL;
+ 	cBlock<RationalNTL>* oldCoeff = NULL;
+-	int termCount = 0;
+ 	do
+ 	{
+ 		oldExp = expTmp;
+@@ -338,7 +336,6 @@ void _decompose(_monomialSum &myPoly, _l
+ 
+ 	RationalNTL temp;
+ 	int g;
+-	bool found;
+ 	int myIndex;
+ 	for (int i = 0; i < myPoly.varCount; i++)
+ 	{
+--- ./code/latte/integration/PolyTrie.cpp.orig	2013-09-29 13:01:45.000000000 -0600
++++ ./code/latte/integration/PolyTrie.cpp	2014-02-10 07:00:00.000000000 -0700
+@@ -32,8 +32,8 @@ void parseMonomials(MonomialConsumer<Rat
+ 	}
+ 	consumer->setDimension(varCount);
+ 
+-	int termIndex, lastPos, expIndex, flag;
+-	termIndex = lastPos = flag = 0; //0 means we expect coefficient, 1 means we expect exponent vector
++	int lastPos, expIndex, flag;
++	lastPos = flag = 0; //0 means we expect coefficient, 1 means we expect exponent vector
+ 
+ 	int *exponents = new int[varCount];
+ 	RationalNTL coefficient;
+@@ -115,7 +115,6 @@ string printMonomials(const monomialSum
+ 	term<RationalNTL, int>* temp;
+ 	it->setTrie(myPoly.myMonomials, myPoly.varCount);
+ 	it->begin();
+-	int i = 0;
+ 	stringstream output(stringstream::in | stringstream::out);
+ 	temp = it->nextTerm();
+ 	do
+@@ -164,7 +163,6 @@ void loadLinForms(linFormSum &forms, con
+ //nested list: [[c_{1}, [d_{1}, [p_{1}, p_{2}, ..., p_{varCount}]], .. ]
+ void parseLinForms(FormSumConsumer<RationalNTL>* consumer, const string& line)
+ {
+-	int termIndex = 0;
+ 	int lastPos = 0;
+ 	int varCount = 0;
+ 	int k;
+@@ -187,7 +185,7 @@ void parseLinForms(FormSumConsumer<Ratio
+ 
+ 	vec_ZZ coefs;
+ 	coefs.SetLength(varCount);
+-	int degree;
++	int degree = -1;
+ 	RationalNTL coefficient;
+ 
+ 	for (size_t i = 1; i < line.length() - 1; i++) //ignore outermost square brackets
+@@ -337,7 +335,6 @@ void loadLinFormProducts(linFormProductS
+ //nested list: [ [a, [[b, [c]], [e, [f]], [g, [h]]]], ... ]
+ void parseLinFormProducts(FormProductLoadConsumer<RationalNTL>* consumer, const string& line)
+ {
+-	int termIndex = 0;
+ 	int lastPos = 0;
+ 	int varCount = 0;
+ 	int k;
+@@ -360,11 +357,11 @@ void parseLinFormProducts(FormProductLoa
+ 
+ 	vec_ZZ coefs;
+ 	coefs.SetLength(varCount);
+-	int degree;
++	int degree = -1;
+ 	RationalNTL coefficient;
+ 
+ 	int productIndex = 0;
+-	for (int i = 1; i < line.length() - 1; i++) //ignore outermost square brackets
++	for (size_t i = 1; i < line.length() - 1; i++) //ignore outermost square brackets
+ 	{
+ 		if (line[i] == '[')
+ 		{
+@@ -446,7 +443,7 @@ void parseLinFormProducts(FormProductLoa
+ //Deallocates space and nullifies internal pointers and counters
+ void destroyLinFormProducts(linFormProductSum &myProd)
+ {
+-	for(int i = 0; i < myProd.myFormProducts.size(); ++i)
++	for(size_t i = 0; i < myProd.myFormProducts.size(); ++i)
+ 	{
+ 		destroyLinForms(myProd.myFormProducts[i]);
+ 	}
+@@ -460,7 +457,7 @@ void destroyLinFormProducts(linFormProdu
+ string printLinFormProducts(const linFormProductSum &plf)
+ {
+ 	stringstream out;
+-	for(int i = 0; i < plf.myFormProducts.size(); ++i)
++	for(size_t i = 0; i < plf.myFormProducts.size(); ++i)
+ 	{
+ 		cout << i << " started" << endl;
+ 		cout << printLinForms(plf[i]).c_str() << endl;
+--- ./code/latte/integration/residue.cpp.orig	2014-01-10 15:12:24.000000000 -0700
++++ ./code/latte/integration/residue.cpp	2014-02-10 07:00:00.000000000 -0700
+@@ -301,7 +301,7 @@ void computeResidueLawrence(const int d,
+ 	//cout << "  d=" << d << ", M=" << M << " ";
+ 	//coneTerm.printTerm();
+ 
+-	int k, i, j;
++	int i, j;
+ 
+ 	//int counter[1000];//counter counts number of appearances of each index[i]
+ 					//again, put this on the stack. Don't want the time requesting memory from the heap because this function is called many times.
+--- ./code/latte/maximize.cpp.orig	2013-09-29 13:02:50.000000000 -0600
++++ ./code/latte/maximize.cpp	2014-02-10 07:00:00.000000000 -0700
+@@ -63,8 +63,7 @@ int main(int argc, char *argv[]) {
+ #ifdef SUN
+   struct tms tms_buf;
+ #endif
+-  float z;
+-  int i,numOfVars,numOfAllVars, degree = 1;
++  int i,numOfVars, degree = 1;
+   unsigned int flags = 0, print_flag = 0, output_cone = 0;
+   vec_ZZ dim, v, w;
+   int oldnumofvars;
+@@ -73,16 +72,15 @@ int main(int argc, char *argv[]) {
      assumeUnimodularCones[127], dualApproach[127], taylor[127], printfile[127],
      rationalCone[127], nonneg[127], Memory_Save[127], Save_Tri[127],
      Load_Tri[127], Print[127], inthull[127], cddstyle[127], grobner[127],
@@ -55,9 +368,31 @@
  
    latte_banner(cerr);
  
---- ./code/latte/minimize.cpp.orig	2013-08-19 15:48:29.000000000 -0600
-+++ ./code/latte/minimize.cpp	2013-09-10 12:00:00.000000000 -0600
-@@ -73,12 +73,12 @@ int main(int argc, char *argv[]) {
+-  z=0;
+   //setbuf(stdout,0);
+ 
+   strcpy(invocation,"Invocation: ");
+@@ -301,7 +299,6 @@ int main(int argc, char *argv[]) {
+     exit(0);
+   }
+ 
+-  numOfAllVars=numOfVars;
+   mat_ZZ ProjU;
+   ProjU.SetDims(numOfVars, numOfVars);
+   oldnumofvars = numOfVars;
+--- ./code/latte/minimize.cpp.orig	2013-09-29 13:02:49.000000000 -0600
++++ ./code/latte/minimize.cpp	2014-02-10 07:00:00.000000000 -0700
+@@ -63,8 +63,7 @@ int main(int argc, char *argv[]) {
+ #ifdef SUN
+   struct tms tms_buf;
+ #endif
+-  float z;
+-  int i,numOfVars,numOfAllVars, degree = 1;
++  int i,numOfVars, degree = 1;
+   unsigned int flags = 0, print_flag = 0, output_cone = 0;
+   vec_ZZ dim, v, w;
+   int oldnumofvars;
+@@ -73,16 +72,15 @@ int main(int argc, char *argv[]) {
      assumeUnimodularCones[127], dualApproach[127], taylor[127], printfile[127],
      rationalCone[127], nonneg[127], Memory_Save[127], Save_Tri[127],
      Load_Tri[127], Print[127], inthull[127], cddstyle[127], grobner[127],
@@ -73,8 +408,150 @@
  
    latte_banner(cerr);
  
---- ./code/latte/ReadPolyhedron.cpp.orig	2011-12-18 13:33:46.000000000 -0700
-+++ ./code/latte/ReadPolyhedron.cpp	2013-09-10 12:00:00.000000000 -0600
+-  z=0;
+   //setbuf(stdout,0);
+ 
+   strcpy(invocation,"Invocation: ");
+@@ -302,7 +300,6 @@ int main(int argc, char *argv[]) {
+     exit(0);
+   }
+ 
+-  numOfAllVars=numOfVars;
+   mat_ZZ ProjU;
+   ProjU.SetDims(numOfVars, numOfVars);
+   oldnumofvars = numOfVars;
+--- ./code/latte/normalize/normalize.cpp.orig	2014-01-10 15:12:27.000000000 -0700
++++ ./code/latte/normalize/normalize.cpp	2014-02-10 07:00:00.000000000 -0700
+@@ -395,12 +395,6 @@ static void open_output_and_stats()
+   _4ti2_::out = &fortytwolog;
+ }
+ 
+-static void
+-close_output_and_stats()
+-{
+-  stats.close();
+-}
+-
+ static listCone *
+ read_cone_cdd_format(const string &filename)
+ {
+@@ -704,6 +698,7 @@ int normalize_main(int argc, char **argv
+     triang_filename = filename;
+     producer = new ListConeReadingConeProducer(filename);
+     triangulate_toplevel = false;
++    cone = NULL;
+   }
+   else {
+     // Read a cone.
+--- ./code/latte/normalize/normaliz_wrapper.cpp.orig	2013-09-29 13:01:39.000000000 -0600
++++ ./code/latte/normalize/normaliz_wrapper.cpp	2014-02-10 07:00:00.000000000 -0700
+@@ -426,7 +426,7 @@ listVector* pullOneRay(char* simplicialC
+       smallCones=extractNonDominatedVectors(smallCones,mainOrbits,numOfVars);
+       printf("uncovered smallCones = %d -> ",lengthListVector(smallCones));
+     	
+-      simplicialCones=extractSimplicialCones(simplicialCones,&smallCones,
++      simplicialCones=extractSimplicialCones(NULL,&smallCones,
+     						                 dimension,numOfVars);
+       printf("simplicial = %d\n",lengthListVector(simplicialCones));
+       if (simplicialCones) { 
+@@ -467,15 +467,12 @@ static void usage()
+ }
+ /* ----------------------------------------------------------------- */
+ int main(int argc, char *argv[]) {
+-  int i,rayToBePulled,localRayToBePulled,dimension,numOfVars,threshold,
+-    maxNorm,trivialPulling;
++  int i,rayToBePulled,dimension,numOfVars,threshold;
+   vector v;
+-  listVector *mainCones, *symmGroup, *smallCones, *trivialSmallCones, 
+-    *simplicialCones, *tmp;
++  listVector *mainCones, *symmGroup;
+   char raysFileName[PATH_MAX],symFileName[PATH_MAX],mainConesInFileName[PATH_MAX],
+     mainConesInFileNameNumbered[PATH_MAX],mainConesOutFileName[PATH_MAX],
+-    mainConesOutFileNameNumbered[PATH_MAX],smallConesInFileName[PATH_MAX],
+-    smallConesOutFileName[PATH_MAX],trivialSmallConesOutFileName[PATH_MAX],
++    mainConesOutFileNameNumbered[PATH_MAX],
+     simplicialConesFileName[PATH_MAX],reductionRaysFileName[PATH_MAX],
+     action[PATH_MAX],hilbert_from_rays[PATH_MAX];
+ 
+@@ -563,11 +560,7 @@ int main(int argc, char *argv[]) {
+   printf("hilbert-from-rays = %s\n",hilbert_from_rays);
+ 
+   mainCones=myReadListVector(&numOfVars,mainConesInFileNameNumbered);
+-  smallCones=0;
+-  trivialSmallCones=0;
+-  simplicialCones=0;
+   candidates=0;
+-  trivialPulling=0;
+ 
+   if (strncmp(action,"pullRay",7)==0) {
+     mainCones=pullOneRay(simplicialConesFileName,mainConesInFileName, 
+--- ./code/latte/preprocess.cpp.orig	2014-01-07 13:05:17.000000000 -0700
++++ ./code/latte/preprocess.cpp	2014-02-10 07:00:00.000000000 -0700
+@@ -632,12 +632,11 @@ listVector* preprocessProblem(listVector
+ listVector* preprocessProblem_hack(listVector *equations, listVector *inequalities,
+ 		vec_ZZ **generators, int *numOfVars, vec_ZZ & cost, mat_ZZ & ProjU,
+ 		char* interior, int dil) {
+-	int i, j, k, ind, ind2, indSol, lenOfMatrix, lenOfBasis,
++	int i, j, ind, ind2, indSol, lenOfMatrix, lenOfBasis,
+ 			numOfIndependentRows, numOfRows, numOfVectors, newNumOfVars;
+ 	ZZ det;
+ 	vec_ZZ a, b, bas, rhs, A, U, H, sol, particularSolution;
+-	listVector *tmp, *tmp2, *basis, *endBasis, *newInequalities,
+-			*endNewInequalities;
++	listVector *tmp, *basis, *endBasis;
+ 	mat_ZZ M, unimodM, Solve;
+ 	//  cerr << *numOfVars << lengthListVector(equations) << endl;
+ 	if (inequalities == 0) {
+@@ -690,9 +689,6 @@ listVector* preprocessProblem_hack(listV
+ 	tmp = equations;
+ 	ind = 0;
+ 	ind2 = 0;
+-	int flag = 0;
+-	if (cost.length() != 0)
+-		flag = 1;
+ 
+ 	while (tmp) {
+ 		rhs[ind2] = (tmp->first)[0];
+--- ./code/latte/ReadingFile.cpp.orig	2014-01-10 15:12:33.000000000 -0700
++++ ./code/latte/ReadingFile.cpp	2014-02-10 07:00:00.000000000 -0700
+@@ -616,7 +616,7 @@ void readLatteProblem(const char *fileNa
+ 		      char* grobner, char * Vrep) {
+   int i,j,eq,ind,numOfVectors,numOfEquations;
+   vec_ZZ indexEquations;
+-  listVector *basis, *endBasis, *tmp, *endEquations, *endInequalities;
++  listVector *basis = NULL, *endBasis, *tmp, *endEquations, *endInequalities;
+   vec_ZZ b;
+   ZZ bignum;
+   /* Reads numOfVars, matrix A, and rhs b. */
+@@ -906,7 +906,7 @@ int CDDstylereadLatteProblem(const char
+ 		      char* grobner) {
+   int i,j,eq,ind, length = 0, f = 0, numOfVectors,numOfEquations;
+   vec_ZZ indexEquations;
+-  listVector *basis, *endBasis, *tmp, *endEquations, *endInequalities;
++  listVector *basis = NULL, *endBasis, *tmp, *endEquations, *endInequalities;
+   vec_ZZ b;
+   string tmpString;
+   
+--- ./code/latte/ReadPolyhedron.cpp.orig	2011-07-20 13:51:36.000000000 -0600
++++ ./code/latte/ReadPolyhedron.cpp	2014-02-10 07:00:00.000000000 -0700
+@@ -38,6 +38,8 @@
+ #include "print.h"
+ #include "dual.h"
+ 
++static dd_MatrixPtr ReadCddStyleMatrix(const string &filename);
++
+ ReadPolyhedronData::ReadPolyhedronData() {
+ 	strcpy(Vrepresentation, "no");
+ 	strcpy(interior, "no");
+@@ -590,8 +592,6 @@ static dd_MatrixPtr ReadCddStyleMatrix(c
+ 
+ Polyhedron *
+ ReadPolyhedronData::read_polyhedron_hairy(BarvinokParameters *params) {
+-	Polyhedron *Poly = NULL;
+-
+ 	if (expect_filename) {
+ 		cerr << "The input file name is missing." << endl;
+ 		THROW_LATTE(LattException::ue_FileNameMissing);
 @@ -1210,11 +1210,11 @@ RationalNTL ReadPolyhedronDataRecursive:
  	{
  		for(int j = 1; j < mat.NumCols(); ++i)
@@ -88,8 +565,17 @@
  //start here --uncomment
  //	mpz_class nDilation
  //	dilationNum = 1;
---- ./code/latte/ReadSubcones.cpp.orig	2011-12-18 13:33:46.000000000 -0700
-+++ ./code/latte/ReadSubcones.cpp	2013-09-10 12:00:00.000000000 -0600
+--- ./code/latte/ReadPolyhedron.h.orig	2011-07-20 11:05:48.000000000 -0600
++++ ./code/latte/ReadPolyhedron.h	2014-02-10 07:00:00.000000000 -0700
+@@ -162,6 +162,4 @@ Polyhedron *ReadLatteStyleVrep(const cha
+ 
+ /* Create a polyhedron from a vrep matrix. */
+ Polyhedron *PolyhedronFromVrepMatrix(dd_MatrixPtr matrix, bool homogenize);
+-
+-static dd_MatrixPtr ReadCddStyleMatrix(const string &filename);
+ #endif
+--- ./code/latte/ReadSubcones.cpp.orig	2010-08-24 15:11:23.000000000 -0600
++++ ./code/latte/ReadSubcones.cpp	2014-01-06 12:30:00.000000000 -0700
 @@ -164,7 +164,7 @@ void
  IncrementalVectorFileWriter::WriteVector(const std::vector<bool> &v)
  {
@@ -117,9 +603,9 @@
  	&& ray->first == master_rays[ray->index_hint])
        ray_indicator[ray->index_hint] = true;
      else {
---- ./code/latte/Residue.cpp.orig	2013-08-19 15:45:20.000000000 -0600
-+++ ./code/latte/Residue.cpp	2013-09-10 12:00:00.000000000 -0600
-@@ -609,7 +609,7 @@ Residue_Single_Cone(listCone* cones, int
+--- ./code/latte/Residue.cpp.orig	2014-01-10 15:12:34.000000000 -0700
++++ ./code/latte/Residue.cpp	2014-02-10 07:00:00.000000000 -0700
+@@ -611,7 +611,7 @@ Residue_Single_Cone(listCone* cones, int
    dim=numOfVars;
    noGsPerC=lengthListVector(cones->rays);
    int i,j;			// index or loop vars
@@ -128,192 +614,83 @@
    vector<int> E(noCones);	  // E is the vector of epsilons, each 1 or -1
    vector<list<Integer> > A(noCones);	// A is the numerator vectors
  
---- ./code/latte/ResSingle.cpp.orig	2013-08-15 18:29:46.000000000 -0600
-+++ ./code/latte/ResSingle.cpp	2013-09-10 12:00:00.000000000 -0600
-@@ -317,7 +317,7 @@ int ResidueFunction_Single_Cone(listCone
- 	for (int i = 0;i <= DEGREE; i++)
- 		Cone_Taylor_Parameters->Result[i] = 0;
- 		
--	if(Residue_Parameters->Flags & PRINT	== 1)
-+	if((Residue_Parameters->Flags & PRINT)	== 1)
- 		 {
- 		   // system_with_error_check("rm func.rat");
- 	 		 //cerr << "Outputing rational functions to file" << endl;
-@@ -839,7 +839,7 @@ int ResidueFunction_Single_Cone(listCone
- 			
- 		}
- 		
--		if(Residue_Parameters->Flags & PRINT == 1)
-+		if((Residue_Parameters->Flags & PRINT) == 1)
- 		{
- 			Rational_Function_Output_File << "x := ";
- 			Final_Cone_Expression->Print_Rational_Functions_to_File( Rational_Function_Output_File );
-@@ -874,7 +874,7 @@ int ResidueFunction_Single_Cone(listCone
- 	
- 	//Output the rational functions to file
- 
--	if(Residue_Parameters->Flags & PRINT == 1)
-+	if((Residue_Parameters->Flags & PRINT) == 1)
- 	{
- 			 
- 		Rational_Function_Output_File.close ();	 
---- ./code/latte/buildPolytopes/BuildRandomPolynomials.cpp.orig	2013-08-02 15:03:37.000000000 -0600
-+++ ./code/latte/buildPolytopes/BuildRandomPolynomials.cpp	2013-09-10 12:00:00.000000000 -0600
-@@ -20,7 +20,7 @@ string makeRandomMonomial(const int dim,
- 	//We treat totalDegree as the amount left over...how much powers we still have to add.
- 	const int stepSize = 2; //add no more than 1 powers to a term at a time.
- 	vector<int> powers;
--	int i; //i = the x_i who will be getting more powers.
-+	int i = 0; //i = the x_i who will be getting more powers.
- 	int newPower;
- 	stringstream poly;
- 
---- ./code/latte/integration/burstTrie.hpp.orig	2011-12-18 13:33:41.000000000 -0700
-+++ ./code/latte/integration/burstTrie.hpp	2013-09-10 12:00:00.000000000 -0600
-@@ -151,7 +151,7 @@ public:
- 		}
- 
- 		BurstTerm<T, S> *curTerm = firstTerm;
--		BurstTerm<T, S> *oldTerm;
-+		BurstTerm<T, S> *oldTerm = NULL;
- 
- 		while (curTerm && curTerm->lessThan(newTerm, equal))
- 		{
---- ./code/latte/integration/consumers.h.orig	2011-12-18 13:33:41.000000000 -0700
-+++ ./code/latte/integration/consumers.h	2013-09-10 12:00:00.000000000 -0600
-@@ -41,6 +41,7 @@ public:
- template <class T> class MonomialLoadConsumer : public MonomialConsumer<T> {
- public:
-   MonomialLoadConsumer() {}
-+  virtual ~MonomialLoadConsumer() {}
-   // Take monomial and consume it.
-   void ConsumeMonomial(const T& coef, int* exps) { insertMonomial(coef, exps, *monomials); }
-   void setMonomialSum(monomialSum& mySum) { monomials = &mySum; }
-@@ -58,7 +59,7 @@ public:
-   void setFormSum(linFormSum& myForms) { formSum = &myForms; }
-   void setDimension(int dimension) { if (formSum) { formSum->varCount = dimension; } }
-   int getDimension() { if (formSum) { return formSum->varCount; } else { return 0; } }
--  ~FormLoadConsumer() {}
-+  virtual ~FormLoadConsumer() {}
- private:
-   linFormSum* formSum;
- };
-@@ -90,7 +91,7 @@ public:
-   void setDimension(int dimension) {if ( formProductSum) formProductSum->varCount = dimension;}
-   int getDimension() {if ( formProductSum) return formProductSum->varCount; else return 0;}
-   int size() {if ( formProductSum) return formProductSum->myFormProducts.size(); else return 0;}
--  ~FormProductLoadConsumer() {}
-+  virtual ~FormProductLoadConsumer() {}
- private:
-   linFormProductSum* formProductSum;
- };
---- ./code/latte/integration/iterators.hpp.orig	2011-12-18 13:33:41.000000000 -0700
-+++ ./code/latte/integration/iterators.hpp	2013-09-10 12:00:00.000000000 -0600
-@@ -134,7 +134,7 @@ public:
- 		return &curTerm;
- 	}
- 
--	~BTrieIterator()
-+	virtual ~BTrieIterator()
- 	{
- 		if (triePath)
- 			delete[] triePath;
---- ./code/latte/integration/newIntegration.cpp.orig	2013-08-02 15:01:29.000000000 -0600
-+++ ./code/latte/integration/newIntegration.cpp	2013-09-10 12:00:00.000000000 -0600
-@@ -35,10 +35,10 @@ void convertToSimplex(simplexZZ &mySimpl
- 	t = line.find("[", t) + 1;
- 	t = line.find("[", t) + 1;
- 	temp = line.substr(t, line.find("]", t) - t);
--	for (i = 0; i < temp.length(); i++)
-+	for (i = 0; (size_t) i < temp.length(); i++)
- 		mySimplex.d += (temp.at(i) == ',');
- 	c = 0;
--	for (i = 0; i < line.length(); i++)
-+	for (i = 0; (size_t) i < line.length(); i++)
- 		c += (line.at(i) == ']');
- 	if (c - 2 != mySimplex.d)
- 	{
-@@ -51,7 +51,7 @@ void convertToSimplex(simplexZZ &mySimpl
- 	{
- 		temp = line.substr(index, line.find("]", index) - index + 1);
- 		c = 0;
--		for (j = 0; j < temp.length(); j++)
-+		for (j = 0; (size_t) j < temp.length(); j++)
- 			c += (temp.at(j) == ',');
- 		if (c != mySimplex.d - 1)
- 		{
---- ./code/latte/integration/PolyRep.cpp.orig	2013-08-02 15:01:18.000000000 -0600
-+++ ./code/latte/integration/PolyRep.cpp	2013-09-10 12:00:00.000000000 -0600
-@@ -167,7 +167,7 @@ void _parseLinForms(_FormSumConsumer<Rat
- 
- 	vec_ZZ coefs;
- 	coefs.SetLength(varCount);
--	int degree;
-+	int degree = 0;
- 	RationalNTL coefficient;
- 
- 	for (size_t i = 1; i < line.length() - 1; i++) //ignore outermost square brackets
---- ./code/latte/integration/PolyTrie.cpp.orig	2013-08-02 15:01:23.000000000 -0600
-+++ ./code/latte/integration/PolyTrie.cpp	2013-09-10 12:00:00.000000000 -0600
-@@ -364,7 +364,7 @@ void parseLinFormProducts(FormProductLoa
- 	RationalNTL coefficient;
- 
- 	int productIndex = 0;
--	for (int i = 1; i < line.length() - 1; i++) //ignore outermost square brackets
-+	for (size_t i = 1; i < line.length() - 1; i++) //ignore outermost square brackets
- 	{
- 		if (line[i] == '[')
- 		{
-@@ -446,7 +446,7 @@ void parseLinFormProducts(FormProductLoa
- //Deallocates space and nullifies internal pointers and counters
- void destroyLinFormProducts(linFormProductSum &myProd)
+--- ./code/latte/top-knapsack/TopKnapsack.cpp.orig	2014-01-26 13:54:56.000000000 -0700
++++ ./code/latte/top-knapsack/TopKnapsack.cpp	2014-02-10 07:00:00.000000000 -0700
+@@ -37,7 +37,7 @@ MobiusList::~MobiusList() {}
+ void MobiusList::insertGCD(const ZZ& v )
  {
--	for(int i = 0; i < myProd.myFormProducts.size(); ++i)
-+	for(size_t i = 0; i < myProd.myFormProducts.size(); ++i)
- 	{
- 		destroyLinForms(myProd.myFormProducts[i]);
- 	}
-@@ -460,7 +460,7 @@ void destroyLinFormProducts(linFormProdu
- string printLinFormProducts(const linFormProductSum &plf)
+ 	bool found = false;
+-	for(int i = 0; i < list.size(); ++i)
++	for(size_t i = 0; i < list.size(); ++i)
+ 		if ( list[i].gcd == v)
+ 		{
+ 			found = true;
+@@ -54,7 +54,7 @@ void MobiusList::insertGCD(const ZZ& v )
+ void MobiusList::computeMobius()
  {
- 	stringstream out;
--	for(int i = 0; i < plf.myFormProducts.size(); ++i)
-+	for(size_t i = 0; i < plf.myFormProducts.size(); ++i)
+ 	int indexOne =-1;
+-	for(int i = 0; i < list.size(); ++i)
++	for(size_t i = 0; i < list.size(); ++i)
  	{
- 		cout << i << " started" << endl;
- 		cout << printLinForms(plf[i]).c_str() << endl;
---- ./code/latte/interpolation/PolynomialInterpolation.cpp.orig	2013-08-30 11:15:33.000000000 -0600
-+++ ./code/latte/interpolation/PolynomialInterpolation.cpp	2013-09-10 12:00:00.000000000 -0600
-@@ -270,5 +270,6 @@ PolynomialInterpolation & PolynomialInte
- 			matrix[row][col] = rhs.matrix[row][col];
+ 		list[i].mu = 0;
+ 		list[i].mobiusValid = false;
+@@ -169,7 +169,7 @@ void BernoulliFirstKind::setBernoulli(in
+ 
+ const RationalNTL& BernoulliFirstKind::operator[](int i) const
+ {
+-	if(i >= B.size())
++	if(i < 0 || (size_t)i >= B.size())
+ 		THROW_LATTE(LattException::bug_Unknown);
+ 
+ 	return B[i];
+@@ -305,8 +305,8 @@ void TopKnapsack::packageAnswer()
+ 
+ 				ZZ hFactorial;
+ 				hFactorial = 1;
+-				for(int i = 2; i <= h; ++i)
+-					hFactorial *= i;
++				for(int j = 2; j <= h; ++j)
++					hFactorial *= j;
+ 
+ 				RationalNTL factor;
+ 				if ( h % 2 == 0)
+@@ -838,11 +838,11 @@ void TopKnapsack::findResidue(GeneralMon
+ 
+ 		vector<RationalNTL> fractionalPart;
+ 		fractionalPart.resize(I);
+-		for(int i = 0; i < I; ++i)
++		for(int j = 0; j < I; ++j)
+ 		{
+-			fractionalPart[i] = RationalNTL(temp[i], invBd*coneRaysInvD);
+-			if (fractionalPart[i].getDenominator() == 1)
+-				fractionalPart[i] = 0; //fractionalPart(integer) = 0
++			fractionalPart[j] = RationalNTL(temp[j], invBd*coneRaysInvD);
++			if (fractionalPart[j].getDenominator() == 1)
++				fractionalPart[j] = 0; //fractionalPart(integer) = 0
  		}
- 	}//for row
-+	return *this;
- }//operator=
- 	
---- ./code/latte/normalize/normaliz_wrapper.cpp.orig	2013-08-19 16:29:58.000000000 -0600
-+++ ./code/latte/normalize/normaliz_wrapper.cpp	2013-09-10 12:00:00.000000000 -0600
-@@ -426,7 +426,7 @@ listVector* pullOneRay(char* simplicialC
-       smallCones=extractNonDominatedVectors(smallCones,mainOrbits,numOfVars);
-       printf("uncovered smallCones = %d -> ",lengthListVector(smallCones));
-     	
--      simplicialCones=extractSimplicialCones(simplicialCones,&smallCones,
-+      simplicialCones=extractSimplicialCones(NULL,&smallCones,
-     						                 dimension,numOfVars);
-       printf("simplicial = %d\n",lengthListVector(simplicialCones));
-       if (simplicialCones) { 
---- ./code/latte/normalize/normalize.cpp.orig	2013-08-19 17:22:00.000000000 -0600
-+++ ./code/latte/normalize/normalize.cpp	2013-09-10 12:00:00.000000000 -0600
-@@ -704,6 +704,7 @@ int normalize_main(int argc, char **argv
-     triang_filename = filename;
-     producer = new ListConeReadingConeProducer(filename);
-     triangulate_toplevel = false;
-+    cone = NULL;
-   }
-   else {
-     // Read a cone.
---- ./code/latte/valuation/PolytopeValuation.cpp.orig	2013-08-07 18:00:56.000000000 -0600
-+++ ./code/latte/valuation/PolytopeValuation.cpp	2013-09-10 12:00:00.000000000 -0600
+ 
+ 		//now, fractionalPart[i] = {-B^-1 T s}_i
+@@ -1278,7 +1278,7 @@ void TopKnapsack::everyGCDFromEntireList
+ 	{
+ 		//at the end of this i-loop, output will contain every gcd from subsets of {alpha[0], ..., alpha[i]}
+ 		//add gcd(alpha[i], any element of output) to output
+-		for(int j = 0; j < output.size(); ++j)
++		for(size_t j = 0; j < output.size(); ++j)
+ 		{
+ 			ZZ g;
+ 			g = GCD(output[j], alpha[i]);
+--- ./code/latte/triangulation/TriangulationWithTOPCOM.cpp.orig	2010-08-24 15:11:02.000000000 -0600
++++ ./code/latte/triangulation/TriangulationWithTOPCOM.cpp	2014-02-10 07:00:00.000000000 -0700
+@@ -124,7 +124,6 @@ read_TOPCOM_triangulation(istream &in,
+   char c;
+   // Find and consume left brace of triangulation.
+   do { in.get(c); } while (in.good() && c != '{');
+-  bool result = false;
+   do {
+     // Consume left brace of simplex.
+     in.get(c);
+--- ./code/latte/valuation/PolytopeValuation.cpp.orig	2014-01-10 15:12:21.000000000 -0700
++++ ./code/latte/valuation/PolytopeValuation.cpp	2014-02-10 07:00:00.000000000 -0700
 @@ -537,7 +537,7 @@ RationalNTL PolytopeValuation::findInteg
  
  	//dilate the integrand..
@@ -332,7 +709,15 @@
  		answer.add(findIntegralProductsUsingTriangulation(linearFormProducts.myFormProducts[i])); //finally, we are ready to do the integration!
  
  	answer.div(power(dilationFactor, linearFormProducts.varCount)); //factor in the Jacobian term.
-@@ -807,7 +807,7 @@ RationalNTL PolytopeValuation::findInteg
+@@ -769,7 +769,6 @@ RationalNTL PolytopeValuation::findInteg
+ 	vec_ZZ l;
+ 	ZZ de, numerator, denominator;
+ 	int dim = dimension; //numOfVars;
+-	int numberFinished = 0;
+ 
+ 	l.SetLength(numOfVars);
+ 	numerator = 0;
+@@ -807,7 +806,7 @@ RationalNTL PolytopeValuation::findInteg
  		//cout << "int ans after lpc " << integralAns << endl;
  
  		de = 1;
@@ -341,8 +726,108 @@
  		{
  			de = de * i;
  		} //de is (d+m)!. Note this is different from the factor in the paper because in the storage of a linear form, any coefficient is automatically adjusted by m!
---- ./code/latte/vertices/cdd.cpp.orig	2013-08-19 15:48:29.000000000 -0600
-+++ ./code/latte/vertices/cdd.cpp	2013-09-10 12:00:00.000000000 -0600
+@@ -1295,7 +1294,6 @@ ZZ PolytopeValuation::lcm(const ZZ &a, c
+  */
+ void PolytopeValuation::printLawrenceVolumeFunction()
+ {
+-	listCone * triangulatedCones;
+ 	vec_ZZ vert = vec_ZZ();
+ 	ZZ temp = ZZ();
+ 	mat_ZZ mat;
+--- ./code/latte/valuation/RecursivePolytopeValuation.cpp.orig	2011-06-24 20:39:28.000000000 -0600
++++ ./code/latte/valuation/RecursivePolytopeValuation.cpp	2014-02-10 07:00:00.000000000 -0700
+@@ -25,7 +25,7 @@ RationalNTL RecursivePolytopeValuation::
+ 	RationalNTL ans;
+ 
+ 	//set up the linear forms.
+-	int degree = 0;
++	// int degree = 0;
+ 	vec_ZZ exp;
+ 	exp.SetLength(parm->Number_of_Variables);
+ 	for(int i = 0; i < parm->Number_of_Variables; ++i)
+--- ./code/latte/valuation/valuation.cpp.orig	2014-01-10 15:12:20.000000000 -0700
++++ ./code/latte/valuation/valuation.cpp	2014-02-10 07:00:00.000000000 -0700
+@@ -366,7 +366,7 @@ void Valuation::computeTopEhrhart(Polyhe
+ }//computeTopEhrhart
+ 
+ 
+-static void Valuation::usage(const char *progname)
++static void usage(const char *progname)
+ {
+ 	cerr << "usage: " << progname << " [OPTIONS...] " << "INPUTFILE" << endl;
+ 	cerr << "Type `" << progname << " --help' "
+@@ -384,12 +384,11 @@ Valuation::ValuationContainer Valuation:
+ 	set_program_name(argv[0]);
+ 
+ 	int i;
+-	unsigned int flags = 0, print_flag = 0, output_cone = 0;
++	unsigned int flags = 0, output_cone = 0;
+ 	char printfile[127], Save_Tri[127], Load_Tri[127], Print[127],
+ 			removeFiles[127];
+ 	char printLawrence[127];
+ 	bool approx;
+-	bool ehrhart_polynomial, ehrhart_series, ehrhart_taylor;
+ 	bool triangulation_specified = false;
+ 	bool useStokes = false;
+ 	double sampling_factor = 1.0;
+@@ -427,7 +426,6 @@ Valuation::ValuationContainer Valuation:
+ 	strcpy(Print, "no");
+ 	strcpy(printLawrence, "no");
+ 	approx = false;
+-	ehrhart_polynomial = false;
+ 	params->substitution = BarvinokParameters::PolynomialSubstitution;
+ 	//params->decomposition = BarvinokParameters::DualDecomposition;
+ 	params->decomposition
+@@ -491,17 +489,14 @@ Valuation::ValuationContainer Valuation:
+ 			params->substitution = BarvinokParameters::NoSubstitution;
+ 		} else if (strncmp(argv[i], "--ehrhart-polynomial", 11) == 0)
+ 		{
+-			ehrhart_polynomial = true;
+ 			params->substitution = BarvinokParameters::ExponentialSubstitution;
+ 		} else if (strncmp(argv[i], "--ehrhart-series", 11) == 0)
+ 		{
+-			ehrhart_series = true;
+ 			strcpy(read_polyhedron_data.dualApproach, "yes");
+ 			strcpy(printfile, "yes");
+ 			flags |= PRINT;
+ 		} else if (strncmp(argv[i], "--simplified-ehrhart-series", 14) == 0)
+ 		{
+-			ehrhart_series = true;
+ 			strcpy(read_polyhedron_data.dualApproach, "yes");
+ 			strcpy(read_polyhedron_data.rationalCone, "yes");
+ 		} else if (strncmp(argv[i], "--ehrhart-taylor=", 17) == 0)
+@@ -739,8 +734,6 @@ Valuation::ValuationContainer Valuation:
+ 		strcpy(read_polyhedron_data.Memory_Save, "no");
+ 	if (read_polyhedron_data.rationalCone[0] == 'y')
+ 		strcpy(read_polyhedron_data.Memory_Save, "no");
+-	if (printfile[0] == 'y')
+-		print_flag = 1;
+ 
+ 	if (read_polyhedron_data.rationalCone[0] == 'y')
+ 	{
+--- ./code/latte/valuation/valuation.h.orig	2013-12-21 13:51:56.000000000 -0700
++++ ./code/latte/valuation/valuation.h	2014-02-10 07:00:00.000000000 -0700
+@@ -188,8 +188,6 @@ ValuationContainer mainValuationDriver(c
+ 
+ void polyhedronToCones(const IntegrationInput &intInput, Polyhedron *Poly, BarvinokParameters * params);
+ 
+-static void usage(const char *progname);
+-
+ }//namespace Valuation
+ 
+ 
+--- ./code/latte/VertexConesWith4ti2.cpp.orig	2010-08-24 15:11:29.000000000 -0600
++++ ./code/latte/VertexConesWith4ti2.cpp	2014-02-10 07:00:00.000000000 -0700
+@@ -40,7 +40,6 @@ computeVertexConesWith4ti2(listVector* i
+ 			   ConeConsumer &consumer)
+ {
+   unbounded = false;
+-  listCone *cones = NULL;
+   int num_ineqs = lengthListVector(ineqs);
+   /* Create a matrix from the facets, with extra coordinates
+      at the front for slack variables.  The 1 is related to the fact
+--- ./code/latte/vertices/cdd.cpp.orig	2013-09-29 13:01:52.000000000 -0600
++++ ./code/latte/vertices/cdd.cpp	2014-02-10 07:00:00.000000000 -0700
 @@ -174,7 +174,7 @@ void createCddIneFile(const dd_MatrixPtr
  	if ( stack.size())
  	{
@@ -377,3 +862,30 @@
  	listCone *cones;
  
  	/* Compute vertices with lrs. */
+@@ -1028,14 +1024,12 @@ static int compute_adjacency(int argc, c
+ {
+ 	dd_MatrixPtr M = NULL, M2 = NULL, M3 = NULL;
+ 	dd_SetFamilyPtr A = NULL;
+-	dd_colrange d;
+ 	dd_ErrorType err = dd_NoError;
+ 	dd_rowset redrows, linrows, ignoredrows, basisrows;
+ 	dd_colset ignoredcols, basiscols;
+ 	long rank;
+ 	mytype val;
+ 	FILE* out;
+-	int flag = 0;
+ 	time_t starttime, endtime;
+ 	dd_DataFileType inputfile;
+ 	FILE *reading = NULL;
+@@ -1063,11 +1057,6 @@ static int compute_adjacency(int argc, c
+ 	if (err != dd_NoError)
+ 		goto _L99;
+ 
+-	if (M->representation == dd_Generator)
+-		d = M->colsize + 1;
+-	else
+-		d = M->colsize;
+-
+ 	/*   fprintf(stdout, "redundant rows:\n");*/
+ 	time(&starttime);
+ 	redrows = dd_RedundantRows(M, &err);
