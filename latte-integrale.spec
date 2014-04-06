@@ -3,7 +3,7 @@
 
 Name:           latte-integrale
 Version:        %{lattever}
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Lattice point enumeration
 
 License:        GPLv2+
