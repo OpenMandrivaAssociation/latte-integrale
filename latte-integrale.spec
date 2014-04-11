@@ -3,7 +3,7 @@
 
 Name:           latte-integrale
 Version:        %{lattever}
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Lattice point enumeration
 
 License:        GPLv2+
@@ -172,11 +172,45 @@ make check
 
 %files
 %doc latte-int-%{lattever}/_docs_staging/*
-%{_bindir}/*
+%{_bindir}/ConvertCDDextToLatte
+%{_bindir}/ConvertCDDineToLatte
+%{_bindir}/count
+%{_bindir}/count-linear-forms-from-polynomial
+%{_bindir}/ehrhart
+%{_bindir}/ehrhart3
+%{_bindir}/hilbert-from-rays
+%{_bindir}/hilbert-from-rays-symm
+%{_bindir}/integrate
+%{_bindir}/latte-maximize
+%{_bindir}/latte-minimize
+%{_bindir}/latte2ext
+%{_bindir}/latte2ine
+%{_bindir}/polyhedron-to-cones
+%{_bindir}/top-ehrhart-knapsack
+%{_bindir}/triangulate
 %{_libdir}/liblatte.so.*
 %{_libdir}/libnormalize.so.*
 
 %files -n 4ti2
+%{_bindir}/4ti2gmp
+%{_bindir}/4ti2int32
+%{_bindir}/4ti2int64
+%{_bindir}/circuits
+%{_bindir}/genmodel
+%{_bindir}/gensymm
+%{_bindir}/graver
+%{_bindir}/groebner
+%{_bindir}/hilbert
+%{_bindir}/markov
+%{_bindir}/minimize
+%{_bindir}/normalform
+%{_bindir}/output
+%{_bindir}/ppi
+%{_bindir}/qsolve
+%{_bindir}/rays
+%{_bindir}/walk
+%{_bindir}/zbasis
+%{_bindir}/zsolve
 %doc %{_docdir}/4ti2/
 
 %files -n 4ti2-devel
