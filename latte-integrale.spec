@@ -3,13 +3,14 @@
 
 Name:           latte-integrale
 Version:        %{lattever}
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        Lattice point enumeration
 
 License:        GPLv2+
 URL:            https://www.math.ucdavis.edu/~latte/software.php
 Source0:        https://www.math.ucdavis.edu/~latte/software/%{name}-%{version}.tar.gz
-Source1:	%{name}.rpmlintrc
+Source1:        4ti2.module.in
+Source2:	%{name}.rpmlintrc
 # Fix warnings that indicate possible runtime problems.
 Patch0:         %{name}-warning.patch
 
@@ -39,10 +40,14 @@ Version:        %{fortiver}
 Summary:        A software package for problems on linear spaces
 Requires:       4ti2-libs%{?_isa} = %{version}-%{release}
 Requires:       latte-integrale
+Requires:       environment-modules
 
 %description -n 4ti2
 A software package for algebraic, geometric and combinatorial problems
 on linear spaces.
+
+This package uses Environment Modules, to load the binaries onto
+your PATH you will need to run module load 4ti2-%{_arch}
 
 %package -n 4ti2-devel
 Version:        %{fortiver}
@@ -141,9 +146,23 @@ mv %{buildroot}%{_includedir}/{4ti2,groebner,util,zsolve} \
    %{buildroot}%{_includedir}/tmp
 mv %{buildroot}%{_includedir}/tmp %{buildroot}%{_includedir}/4ti2
 
+# Move the 4ti2 binaries
+mkdir -p %{buildroot}%{_libdir}/4ti2
+mv %{buildroot}%{_bindir} %{buildroot}%{_libdir}/4ti2
+
+# Make the environment-modules file
+mkdir -p %{buildroot}%{_datadir}/Modules/modulefiles/
+# Since we're doing our own substitution here, use our own definitions.
+sed 's#@LIBDIR@#'%{_libdir}/4ti2'#g;' < %SOURCE1 >%{buildroot}%{_datadir}/Modules/modulefiles/4ti2-%{_arch}
+
 # Install latte-integrale
 cd ../latte-int-%{lattever}
 %make_install
+
+# Some binaries have too-generic names
+for bin in count integrate triangulate; do
+  mv %{buildroot}%{_bindir}/$bin %{buildroot}%{_bindir}/latte-$bin
+done
 
 # We don't need or want libtool files
 rm -f %{buildroot}%{_libdir}/*.la
@@ -172,46 +191,14 @@ make check
 
 %files
 %doc latte-int-%{lattever}/_docs_staging/*
-%{_bindir}/ConvertCDDextToLatte
-%{_bindir}/ConvertCDDineToLatte
-%{_bindir}/count
-%{_bindir}/count-linear-forms-from-polynomial
-%{_bindir}/ehrhart
-%{_bindir}/ehrhart3
-%{_bindir}/hilbert-from-rays
-%{_bindir}/hilbert-from-rays-symm
-%{_bindir}/integrate
-%{_bindir}/latte-maximize
-%{_bindir}/latte-minimize
-%{_bindir}/latte2ext
-%{_bindir}/latte2ine
-%{_bindir}/polyhedron-to-cones
-%{_bindir}/top-ehrhart-knapsack
-%{_bindir}/triangulate
+%{_bindir}/*
 %{_libdir}/liblatte.so.*
 %{_libdir}/libnormalize.so.*
 
 %files -n 4ti2
-%{_bindir}/4ti2gmp
-%{_bindir}/4ti2int32
-%{_bindir}/4ti2int64
-%{_bindir}/circuits
-%{_bindir}/genmodel
-%{_bindir}/gensymm
-%{_bindir}/graver
-%{_bindir}/groebner
-%{_bindir}/hilbert
-%{_bindir}/markov
-%{_bindir}/minimize
-%{_bindir}/normalform
-%{_bindir}/output
-%{_bindir}/ppi
-%{_bindir}/qsolve
-%{_bindir}/rays
-%{_bindir}/walk
-%{_bindir}/zbasis
-%{_bindir}/zsolve
-%doc %{_docdir}/4ti2/
+%{_docdir}/4ti2/
+%{_libdir}/4ti2/
+%{_datadir}/Modules/modulefiles/4ti2-%{_arch}
 
 %files -n 4ti2-devel
 %{_includedir}/4ti2/
