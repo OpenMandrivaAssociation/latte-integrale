@@ -1,0 +1,39 @@
+--- src/base/include/LiDIA/lanczos.h.orig	2009-05-09 09:25:17.000000000 -0600
++++ src/base/include/LiDIA/lanczos.h	2016-05-01 11:20:19.124685165 -0600
+@@ -102,7 +102,7 @@ public:
+   {
+     printf("\nIndex_List:\t");
+     for (size_type i = 0; i < length; i++)
+-      printf(" [%ld] %ld\n", i, list[i]);
++      printf(" [%zu] %ld\n", i, list[i]);
+   }
+   
+   void clear()
+@@ -236,6 +236,7 @@ public:
+   const lanczos_small_matrix& operator= (const lanczos_small_matrix& matrix)
+   {
+     memcpy(rows, matrix.rows, WordSize * sizeof(value_type));
++    return *this;
+   }
+ 
+   void put_row(const size_type pos, const value_type row)
+--- src/base/simple_classes/lanczos/lanczos_spmatrix.cc.orig	2009-05-09 09:25:35.000000000 -0600
++++ src/base/simple_classes/lanczos/lanczos_spmatrix.cc	2016-05-01 12:42:50.555029932 -0600
+@@ -142,7 +142,7 @@ lanczos_sparse_matrix::write(const char
+     {
+       for (sn = 0; sn < number_of_columns(); sn++) {
+ 	number = entries[sn].get_number_of_entries();
+-	fprintf(fp, "%ld %ld %d ", sn+1, number*2, 0);
++	fprintf(fp, "%ld %zu %d ", sn+1, number*2, 0);
+ 	for (i = 0; i < number; i++)
+ 	  fprintf(fp, "1 %ld ", entries[sn].get_entry(i));
+ 	fprintf(fp, "0\n");
+@@ -222,7 +222,7 @@ lanczos_sparse_matrix::print() const
+ {
+   for (size_type i = 0; i < columns; i++)
+     {
+-      printf("%ld: ", i);
++      printf("%zu: ", i);
+       entries[i].print();
+   }
+ }

@@ -1,18 +1,23 @@
-%global fortiver 1.6.2
-%global lattever 1.7.1
+%global fortiver 1.6.7
+%global lattever 1.7.3
+
+%define _disable_lto 1
+%define _disable_ld_no_undefined 1
+%define _disable_rebuild_configure 1
 
 Name:           latte-integrale
-Version:        %{lattever}
-Release:        4%{?dist}
+Version:        %{lattever}b
+Release:        1
 Summary:        Lattice point enumeration
-
+Group:		Sciences/Mathematics
 License:        GPLv2+
 URL:            https://www.math.ucdavis.edu/~latte/software.php
-Source0:        https://www.math.ucdavis.edu/~latte/software/%{name}-%{version}.tar.gz
+Source0:        https://www.math.ucdavis.edu/~latte/software/packages/latte_current/%{name}-%{version}.tar.gz
 Source1:        4ti2.module.in
 Source2:	%{name}.rpmlintrc
 # Fix warnings that indicate possible runtime problems.
 Patch0:         %{name}-warning.patch
+Patch1:		lidia-warning.patch
 
 BuildRequires:  cdd
 BuildRequires:  cddlib-devel
@@ -68,11 +73,14 @@ Library files for programs that use 4ti2.
 %prep
 %setup -q
 
-# Don't use bundled software; also delete the unused LiDIA files
-rm -f cddlib* glpk* gmp* lidia* ntl*
+# Don't use bundled software
+rm -f cddlib* glpk* gmp* ntl*
 
 # Unpack 4ti2 and latte-integrale
 tar xzf 4ti2-%{fortiver}.tar.gz
+tar xzf lidia-base-2.3.0+latte-patches-2014-10-04.tar.gz
+tar xzf lidia-FF-2.3.0+latte-patches-2014-10-04.tar.gz
+tar xzf lidia-LA-2.3.0+latte-patches-2014-10-04.tar.gz
 tar xzf latte-int-%{lattever}.tar.gz
 
 # Fix encodings
@@ -97,7 +105,13 @@ sed -e "s|cdd\.h|cddlib/cdd.h|" -e "s/lrs1/lrs/" -i configure
 # timeouts and let koji kill us if a test infloops.
 sed -i 's/ulimit -t $MAXRUNTIME; //' code/test-suite/test.pl.in
 
+# Patch lidia
+cd ../lidia-2.3.0+latte-patches-2014-10-04
+%patch1
+
 %build
+export CC=gcc
+export CXX=g++
 # Build 4ti2 first
 cd 4ti2-%{fortiver}
 %configure2_5x --enable-shared --disable-static LIBS="-lgmpxx -lgmp" \
@@ -116,7 +130,22 @@ make %{?_smp_mflags}
 # Do a fake install of 4ti2 for building latte-integrale
 mkdir ../local
 make install DESTDIR=$PWD/../local
-sed -i "s,%{_libdir}/lib4ti2,$PWD/../local&," ../local%{_libdir}/*.la
+
+# Next build LiDia
+ln -s lidia ../local%{_includedir}/LiDIA
+cd ../lidia-2.3.0+latte-patches-2014-10-04
+cp -p ../{config.guess,config.sub,install-sh,ltmain.sh,missing} .
+%configure2_5x --disable-nf --disable-ec --disable-eco --disable-gec \
+  CFLAGS="%{optflags} -fPIC -fno-strict-aliasing" \
+  CXXFLAGS="%{optflags} -fPIC -fno-strict-aliasing"
+sed -i 's/-m64/& -fPIC -fno-strict-aliasing/' libtool library/Makefile \
+  library/base/Makefile library/linear_algebra/Makefile \
+  library/finite_fields/Makefile
+make %{?_smp_mflags}
+
+# Do a fake install of LiDia for building latte-integrale
+make install DESTDIR=$PWD/../local
+sed -i "s,%{_libdir},$PWD/../local&," ../local%{_libdir}/*.la
 
 # Now build latte-integrale itself
 cd ../latte-int-%{lattever}
@@ -124,8 +153,8 @@ sed -i 's|\(^LIBS = .*\)|\1 ../../latte/liblatte.la|' \
     code/latte/normalize/Makefile.in
 %configure2_5x --enable-shared --disable-static \
   --enable-DATABASE --with-4ti2=$PWD/../local/%{_prefix} \
-  --with-4ti2=$PWD/../local/%{_prefix} \
-  CPPFLAGS="-I%{_includedir}/cddlib -D_GNU_SOURCE=1"
+  CPPFLAGS="-I%{_includedir}/cddlib -D_GNU_SOURCE=1 -DNTL_STD_CXX" \
+  LDFLAGS="-L$PWD/../local%{_libdir} $RPM_LD_FLAGS"
 
 # Get rid of undesirable hardcoded rpaths; workaround libtool reordering
 # -Wl,--as-needed after all the libraries.
