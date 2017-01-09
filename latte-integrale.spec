@@ -4,7 +4,7 @@
 
 Name:           latte-integrale
 Version:        1.5.3
-Release:        1%{?dist}
+Release:        2
 Summary:        Lattice point enumeration
 
 License:        GPLv2+
@@ -150,6 +150,11 @@ mv %{buildroot}%{_includedir}/tmp %{buildroot}%{_includedir}/4ti2
 # Install latte-integrale
 cd ../latte-int-%{version}
 %make_install
+
+# Some binaries have too-generic names
+for bin in count integrate triangulate; do
+  mv %{buildroot}%{_bindir}/$bin %{buildroot}%{_bindir}/latte-$bin
+done
 
 # We don't need or want libtool files
 rm -f %{buildroot}%{_libdir}/*.la
