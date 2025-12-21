@@ -19,6 +19,11 @@ Source2:	%{name}.rpmlintrc
 Patch0:         %{name}-warning.patch
 Patch1:		lidia-warning.patch
 
+BuildRequires:	autoconf
+BuildRequires:	automake
+BuildRequires:	libtool-base
+BuildRequires:	slibtool
+BuildRequires:	make
 BuildRequires:  cdd
 BuildRequires:  cddlib-devel
 BuildRequires:  glpk-devel
